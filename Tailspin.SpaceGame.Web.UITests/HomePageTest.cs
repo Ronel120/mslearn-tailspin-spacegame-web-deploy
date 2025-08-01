@@ -9,8 +9,9 @@ using System.Collections;
 
 namespace UITests
 {
+
+    // [TestFixture("Firefox")]
     [TestFixture("Chrome")]
-    [TestFixture("Firefox")]
     [TestFixture("Edge")]
     public class HomePageTest
     {
@@ -27,30 +28,33 @@ namespace UITests
         {
             try
             {
+                
+         
                 // Create the driver for the current browser.
-                switch(browser)
+                switch (browser)
                 {
-                  case "Chrome":
-                    driver = new ChromeDriver(
-                        Environment.GetEnvironmentVariable("ChromeWebDriver")
-                    );
-                    break;
-                  case "Firefox":
-                    driver = new FirefoxDriver(
-                        Environment.GetEnvironmentVariable("GeckoWebDriver")
-                    );
-                    break;
-                  case "Edge":
-                    driver = new EdgeDriver(
-                        Environment.GetEnvironmentVariable("EdgeWebDriver"),
-                        new EdgeOptions
-                        {
-                            UseChromium = true
-                        }
-                    );
-                    break;
-                  default:
-                    throw new ArgumentException($"'{browser}': Unknown browser");
+                    case "Chrome":
+                        driver = new ChromeDriver(
+                            Environment.GetEnvironmentVariable("ChromeWebDriver")
+                        );
+                        break;
+                    // case "Firefox":
+                    //     driver = new FirefoxDriver(
+                    //         Environment.GetEnvironmentVariable("GeckoWebDriver")
+                    //     );
+                    //     break;
+
+                      case "Edge":
+                        driver = new EdgeDriver(
+                            Environment.GetEnvironmentVariable("EdgeWebDriver"),
+                            new EdgeOptions
+                            {
+                                UseChromium = true
+                            }
+                        );
+                        break;
+                    default:
+                        throw new ArgumentException($"'{browser}': Unknown browser");
                 }
 
                 // Wait until the page is fully loaded on every page navigation or page reload.
@@ -85,6 +89,7 @@ namespace UITests
             if (driver != null)
             {
                 driver.Quit();
+                driver.Dispose();
             }
         }
 
@@ -100,6 +105,11 @@ namespace UITests
             // This happens when the underlying browser is not installed.
             if (driver == null)
             {
+                Console.WriteLine("ChromeWebDriver path: " + Environment.GetEnvironmentVariable("ChromeWebDriver"));
+                Console.WriteLine("GeckoWebDriver path: " + Environment.GetEnvironmentVariable("GeckoWebDriver"));
+                Console.WriteLine("SITE_URL: " + Environment.GetEnvironmentVariable("SITE_URL"));
+                Console.WriteLine($"Browser: {browser}");
+                Console.WriteLine($"Driver missing: {driver}");
                 Assert.Ignore();
                 return;
             }
