@@ -115,6 +115,7 @@ stages:
               azureSubscription: 'Resource Manager - Tailspin - Space Game'
               appName: '$(WebAppNameTest)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
   - job: RunUITests
     dependsOn: Deploy
     displayName: 'Run UI tests'
@@ -123,16 +124,39 @@ stages:
     variables:
     - group: 'Release'
     steps: 
+    - task: PowerShell@2
+      displayName: 'Wait for test app to be ready'
+      inputs:
+        targetType: 'inline'
+        script: |
+          $maxAttempts = 6
+          $delay = 30
+          $url = "https://tailspin-space-game-web-test-a11.azurewebsites.net"
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            try {
+              $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10
+              if ($response.StatusCode -eq 200) {
+                Write-Host "App is ready."
+                break
+              }
+            } catch {
+              Write-Host "Attempt $i: App not ready. Retrying in $delay seconds..."
+            }
+            Start-Sleep -Seconds $delay
+          }
+
     - task: UseDotNet@2
       displayName: 'Use .NET SDK $(dotnetSdkVersion)'
       inputs:
         version: '$(dotnetSdkVersion)'
+
     - task: DotNetCoreCLI@2
       displayName: 'Build the project - $(buildConfiguration)'
       inputs:
         command: 'build'
         arguments: '--configuration $(buildConfiguration)'
         projects: '$(System.DefaultWorkingDirectory)/**/*UITests.csproj'
+
     - task: DotNetCoreCLI@2
       displayName: 'Run unit tests - $(buildConfiguration)'
       inputs:
