@@ -129,21 +129,32 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $maxAttempts = 6
-          $delay = 30
+          $maxAttempts = 10
+          $delay = 20
           $url = "https://tailspin-space-game-web-test-a11.azurewebsites.net"
+
+          Write-Host "Waiting for app at $url to become ready..."
+
           for ($i = 1; $i -le $maxAttempts; $i++) {
             try {
               $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10
               if ($response.StatusCode -eq 200) {
-                Write-Host "App is ready."
+                Write-Host "App is ready (HTTP 200)."
                 break
+              } else {
+                Write-Host "Attempt ${i}: App returned status $($response.StatusCode). Retrying in ${delay} seconds..."
               }
             } catch {
-              Write-Host "Attempt $i: App not ready. Retrying in $delay seconds..."
+              Write-Host "Attempt ${i}: App not ready. Retrying in ${delay} seconds..."
             }
+
+            if ($i -eq $maxAttempts) {
+              throw "App did not become ready after ${maxAttempts} attempts."
+            }
+
             Start-Sleep -Seconds $delay
           }
+
 
     - task: UseDotNet@2
       displayName: 'Use .NET SDK $(dotnetSdkVersion)'
